@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Selector Snippet Generator</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="container">
+    <h3>Selector Snippet Generator (MVP)</h3>
+    <div class="controls">
+      <button id="startBtn">Start Recording</button>
+      <button id="stopBtn" disabled>Stop Recording</button>
+      <button id="copyAll">Copy All</button>
+      <button id="clearAll">Clear All</button>
+    </div>
+
+    <div class="actions">
+      <button id="addNav">Add Navigation</button>
+      <button id="openConfig">Open Config</button>
+    </div>
+
+    <div id="listWrap"><ul id="snippetsList"></ul></div>
+  </div>
+<script src="shared/storage-utils.js"></script>
+<script src="popup/popup-data.js"></script>
+<script src="popup/popup-ui.js"></script>
+</body>
+</html>

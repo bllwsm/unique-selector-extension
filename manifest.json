@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Unique Selector & Snippet Generator (MVP)",
+  "version": "0.1.0",
+  "description": "Record clicks, text inputs, navigation and replace commands; generate JS snippets referencing config variables.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_title": "Selector Snippet Generator"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "shared/constants.js",
+        "shared/storage-utils.js",
+        "shared/dom-utils.js",
+        "selectors/unique-finder.js",
+        "ui/notifications.js",
+        "ui/visual-feedback.js",
+        "content/content-storage.js",
+        "content/content-handlers.js",
+        "content/content-core.js"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 16px;
+  background: #fff;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.controls, .actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.controls button, .actions button {
+  padding: 8px 12px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.controls button:hover, .actions button:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.controls button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#startBtn {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+#startBtn:hover:not(:disabled) {
+  background: #218838;
+}
+
+#stopBtn {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+#stopBtn:hover:not(:disabled) {
+  background: #c82333;
+}
+
+#copyAll {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+#copyAll:hover {
+  background: #0056b3;
+}
+
+#clearAll {
+  background: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}
+
+#clearAll:hover {
+  background: #545b62;
+}
+
+#listWrap {
+  max-height: 320px;
+  overflow-y: auto;
+  border-top: 1px solid #e9ecef;
+  padding-top: 12px;
+}
+
+#snippetsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+li.snip {
+  padding: 12px;
+  border: 1px solid #e9ecef;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  font-size: 12px;
+  position: relative;
+}
+
+.snippet-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.timestamp {
+  font-size: 10px;
+  color: #6c757d;
+  margin-left: auto;
+}
+
+.snip pre {
+  white-space: pre-wrap;
+  margin: 0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 11px;
+  background: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.button-container {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.delBtn, .copyBtn {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.delBtn {
+  background: #dc3545;
+  color: white;
+}
+
+.delBtn:hover {
+  background: #c82333;
+}
+
+.copyBtn {
+  background: #6c757d;
+  color: white;
+}
+
+.copyBtn:hover {
+  background: #5a6268;
+}
+
+.small {
+  font-size: 11px;
+  color: #6c757d;
+  font-weight: 500;
+}
