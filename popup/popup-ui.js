@@ -4,7 +4,33 @@
 function el(id) { return document.getElementById(id); }
 const startBtn = el('startBtn'), stopBtn = el('stopBtn'), snippetsList = el('snippetsList'),
       copyAll = el('copyAll'), clearAll = el('clearAll'),
-      addNav = el('addNav'), openConfig = el('openConfig');
+      addNav = el('addNav'), saveConfigBtn = el('saveConfigBtn'), addConfigBtn = el('addConfigBtn'),
+      configContent = el('configContent');
+
+// Tab management
+function switchTab(tabName) {
+  // Update tab buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+  
+  // Update tab content
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.toggle('active', content.id === `${tabName}-tab`);
+  });
+  
+  // Load config data when switching to config tab
+  if (tabName === 'config') {
+    loadAndRenderConfig();
+  }
+}
+
+// Initialize tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    switchTab(btn.dataset.tab);
+  });
+});
 
 function renderList(snippets) {
   snippetsList.innerHTML = '';
@@ -123,7 +149,8 @@ stopBtn.addEventListener('click', () => {
 copyAll.addEventListener('click', copyAllSnippets);
 clearAll.addEventListener('click', clearAllData);
 addNav.addEventListener('click', addNavigationSnippet);
-openConfig.addEventListener('click', openConfigPage);
+saveConfigBtn.addEventListener('click', saveConfigData);
+addConfigBtn.addEventListener('click', addConfigVariable);
 
 // Initialize popup
 document.addEventListener('DOMContentLoaded', async () => {
@@ -185,3 +212,110 @@ function stopPeriodicRefresh() {
 
 // Start periodic refresh on load
 startPeriodicRefresh();
+
+// Config management functions
+async function loadAndRenderConfig() {
+  try {
+    const config = await getConfig();
+    renderConfig(config);
+  } catch (error) {
+    console.error('Error loading config:', error);
+  }
+}
+
+function renderConfig(config) {
+  const keys = Object.keys(config || {});
+  
+  if (keys.length === 0) {
+    configContent.innerHTML = '<div class="config-empty">No config variables yet. Click "Add Variable" to get started.</div>';
+    return;
+  }
+  
+  let html = '<table class="config-table"><tr><th>Key</th><th>Value</th><th>Delete</th></tr>';
+  keys.forEach(key => {
+    const value = config[key] || '';
+    html += `<tr>
+      <td><input type="text" value="${escapeHtml(key)}" data-key="${escapeHtml(key)}" class="config-key" /></td>
+      <td><input type="text" value="${escapeHtml(value)}" data-key="${escapeHtml(key)}" class="config-val" /></td>
+      <td><button class="delete-btn" data-key="${escapeHtml(key)}">Delete</button></td>
+    </tr>`;
+  });
+  html += '</table>';
+  configContent.innerHTML = html;
+  
+  // Attach delete handlers
+  configContent.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const key = e.target.dataset.key;
+      await deleteConfigKey(key);
+    });
+  });
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function collectConfigFormData() {
+  const keys = Array.from(configContent.querySelectorAll('.config-key'))
+    .map(input => input.value.trim())
+    .filter(Boolean);
+  const vals = Array.from(configContent.querySelectorAll('.config-val'))
+    .map(input => input.value);
+  
+  const obj = {};
+  for (let i = 0; i < keys.length; i++) { 
+    obj[keys[i]] = vals[i] || ''; 
+  }
+  return obj;
+}
+
+async function saveConfigData() {
+  try {
+    const configData = collectConfigFormData();
+    await saveConfig(configData);
+    
+    // Show brief success feedback
+    const originalText = saveConfigBtn.textContent;
+    saveConfigBtn.textContent = 'Saved!';
+    saveConfigBtn.style.background = '#28a745';
+    setTimeout(() => {
+      saveConfigBtn.textContent = originalText;
+      saveConfigBtn.style.background = '';
+    }, 1500);
+    
+    renderConfig(configData);
+  } catch (error) {
+    console.error('Error saving config:', error);
+    alert('Error saving config');
+  }
+}
+
+async function deleteConfigKey(key) {
+  try {
+    const config = await getConfig();
+    delete config[key];
+    await saveConfig(config);
+    renderConfig(config);
+  } catch (error) {
+    console.error('Error deleting config key:', error);
+  }
+}
+
+async function addConfigVariable() {
+  const key = prompt('Enter variable name (e.g. MY_URL):');
+  if (!key || !key.trim()) return;
+  
+  const trimmedKey = key.trim();
+  
+  try {
+    const config = await getConfig();
+    config[trimmedKey] = config[trimmedKey] || '';
+    await saveConfig(config);
+    renderConfig(config);
+  } catch (error) {
+    console.error('Error adding config variable:', error);
+  }
+}

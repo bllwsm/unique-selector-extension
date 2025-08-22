@@ -13,6 +13,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 100%;
 }
 
 h3 {
@@ -89,10 +90,11 @@ h3 {
 }
 
 #listWrap {
-  max-height: 320px;
+  flex: 1;
   overflow-y: auto;
   border-top: 1px solid #e9ecef;
   padding-top: 12px;
+  min-height: 0;
 }
 
 #snippetsList {
@@ -173,4 +175,153 @@ li.snip {
   font-size: 11px;
   color: #6c757d;
   font-weight: 500;
+}
+
+/* Tab Navigation */
+.tab-nav {
+  display: flex;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 12px;
+  gap: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6c757d;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:first-child {
+  border-top-left-radius: 6px;
+}
+
+.tab-btn:last-child {
+  border-top-right-radius: 6px;
+}
+
+.tab-btn:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.tab-btn.active {
+  background: #fff;
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+/* Tab Content */
+.tab-content {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tab-content.active {
+  display: flex;
+}
+
+/* Config Tab Styles */
+#config-tab {
+  gap: 12px;
+}
+
+#configContent {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.config-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.config-table th,
+.config-table td {
+  padding: 8px;
+  border: 1px solid #e9ecef;
+  text-align: left;
+}
+
+.config-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+
+.config-table input[type="text"] {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  padding: 4px;
+}
+
+.config-table input[type="text"]:focus {
+  outline: 1px solid #007bff;
+  background: #fff;
+}
+
+.config-table .delete-btn {
+  padding: 4px 8px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.config-table .delete-btn:hover {
+  background: #c82333;
+}
+
+.config-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e9ecef;
+}
+
+.config-actions button {
+  padding: 8px 12px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.config-actions button:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+#saveConfigBtn {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+#saveConfigBtn:hover {
+  background: #218838;
+}
+
+.config-empty {
+  text-align: center;
+  color: #6c757d;
+  font-size: 12px;
+  padding: 20px;
+  font-style: italic;
 }

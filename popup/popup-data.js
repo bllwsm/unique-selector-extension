@@ -91,7 +91,3 @@ async function addNavigationSnippet() {
     console.error('Error adding navigation snippet:', error);
   }
 }
-
-function openConfigPage() {
-  chrome.tabs.create({ url: chrome.runtime.getURL('config.html') });
-}

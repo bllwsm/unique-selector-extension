@@ -9,19 +9,37 @@
 <body>
   <div class="container">
     <h3>Selector Snippet Generator (MVP)</h3>
-    <div class="controls">
-      <button id="startBtn">Start Recording</button>
-      <button id="stopBtn" disabled>Stop Recording</button>
-      <button id="copyAll">Copy All</button>
-      <button id="clearAll">Clear All</button>
+    
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="recorder">Recorder</button>
+      <button class="tab-btn" data-tab="config">Config</button>
     </div>
 
-    <div class="actions">
-      <button id="addNav">Add Navigation</button>
-      <button id="openConfig">Open Config</button>
+    <!-- Recorder Tab Content -->
+    <div class="tab-content active" id="recorder-tab">
+      <div class="controls">
+        <button id="startBtn">Start Recording</button>
+        <button id="stopBtn" disabled>Stop Recording</button>
+        <button id="copyAll">Copy All</button>
+        <button id="clearAll">Clear All</button>
+      </div>
+
+      <div class="actions">
+        <button id="addNav">Add Navigation</button>
+      </div>
+
+      <div id="listWrap"><ul id="snippetsList"></ul></div>
     </div>
 
-    <div id="listWrap"><ul id="snippetsList"></ul></div>
+    <!-- Config Tab Content -->
+    <div class="tab-content" id="config-tab">
+      <div id="configContent"></div>
+      <div class="config-actions">
+        <button id="saveConfigBtn">Save</button>
+        <button id="addConfigBtn">Add Variable</button>
+      </div>
+    </div>
   </div>
 <script src="shared/storage-utils.js"></script>
 <script src="popup/popup-data.js"></script>
