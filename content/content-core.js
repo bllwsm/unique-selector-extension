@@ -31,6 +31,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true; // Keep the message channel open for async response
 });
 
-// Attach event listeners
-document.addEventListener('click', handleClick, true);
-document.addEventListener('blur', handleBlur, true);
+// Attach event listeners with a small delay to avoid page load events
+setTimeout(() => {
+  document.addEventListener('click', handleClick, true);
+  document.addEventListener('blur', handleBlur, true);
+  // Track genuine user input interactions
+  document.addEventListener('input', handleInput, true);
+  document.addEventListener('keydown', handleKeydown, true);
+  console.log("[SnippetGenerator] Event listeners attached");
+}, 100);
