@@ -75,6 +75,9 @@ function handleInputFieldClick(el, ev) {
     ev.preventDefault();
     ev.stopPropagation();
     
+    // Mark this element as processed immediately to prevent blur handler duplication
+    processedElements.add(el);
+    
     const selector = generateUniqueSelector(el);
     if (!selector) {
       console.warn("[SnippetGenerator] Could not generate unique selector for input:", el);
@@ -93,12 +96,13 @@ function handleInputFieldClick(el, ev) {
     if (currentValue.trim()) {
       // Field has content - ask what to replace it with
       targetValue = prompt(`This field contains: "${currentValue}"\\n\\nWhat would you like to replace it with?`, currentValue);
-      if (targetValue === null) return; // User cancelled
+      if (targetValue === null || targetValue === '') return; // User cancelled or entered nothing
       
       const fieldName = el.name || el.id || el.placeholder || el.getAttribute('data-placeholder') || 'field';
       configKey = prompt('Enter config key for this value (e.g. RELEASE_NUMBER):', 
         fieldName.replace(/[^\\w]/g, '_').toUpperCase());
-      if (!configKey) return;
+      if (configKey === null) return; // User cancelled
+      if (!configKey.trim()) return; // User entered empty/whitespace
       
     } else {
       // Field is empty - ask what to enter
@@ -113,7 +117,8 @@ function handleInputFieldClick(el, ev) {
       const fieldName = el.name || el.id || el.placeholder || el.getAttribute('data-placeholder') || 'field';
       configKey = prompt('Enter config key for this value (e.g. USERNAME):', 
         fieldName.replace(/[^\\w]/g, '_').toUpperCase());
-      if (!configKey) return;
+      if (configKey === null) return; // User cancelled
+      if (!configKey.trim()) return; // User entered empty/whitespace
     }
     
     // Generate code that simulates proper user interaction for different element types
@@ -158,9 +163,6 @@ if (element) {
     };
     
     console.log("[SnippetGenerator] Input field interaction recorded:", snippet);
-    
-    // Mark this element as processed to prevent blur handler duplication
-    processedElements.add(el);
     
     // Visual feedback using modular function
     showInputFeedback(el);
