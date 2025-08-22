@@ -14,9 +14,15 @@ function handleClick(ev) {
     
     const el = ev.target;
     
-    // Check if this is an input field click (always handle, regardless of recording state)
+    // Check if this is an input field click (only handle when recording)
     if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || 
         el.contentEditable === 'true' || el.hasAttribute('contenteditable')) {
+      
+      if (!window.isRecording) {
+        console.log("[SnippetGenerator] Not recording, ignoring input field click");
+        return;
+      }
+      
       handleInputFieldClick(el, ev);
       return;
     }
