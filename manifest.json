@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Unique Selector & Snippet Generator (MVP)",
+  "name": "JSnippetGen",
   "version": "0.1.0",
   "description": "Record clicks, text inputs, navigation and replace commands; generate JS snippets referencing config variables.",
   "permissions": [
