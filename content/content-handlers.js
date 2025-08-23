@@ -101,7 +101,7 @@ function handleInputFieldClick(el, ev) {
     
     if (currentValue.trim()) {
       // Field has content - ask what pattern to replace
-      replacePattern = prompt(`This field contains: "${currentValue}"\\n\\nWhat pattern do you want to replace? (e.g., "<testing>", "placeholder_text", etc.)`, '');
+      replacePattern = prompt(`This field contains: "${currentValue}"\n\nWhat pattern do you want to replace? (e.g., "<testing>", "placeholder_text", etc.)`, '');
       if (replacePattern === null || replacePattern === '') return; // User cancelled or entered nothing
       
       const fieldName = el.name || el.id || el.placeholder || el.getAttribute('data-placeholder') || 'field';
@@ -118,8 +118,8 @@ function handleInputFieldClick(el, ev) {
       // Field is empty - ask what to enter
       const placeholderText = el.placeholder || el.getAttribute('data-placeholder') || '';
       const promptMessage = placeholderText ? 
-        `This field is empty (placeholder: "${placeholderText}").\\n\\nWhat would you like to enter?` :
-        'This field is empty.\\n\\nWhat would you like to enter?';
+        `This field is empty (placeholder: "${placeholderText}").\n\nWhat would you like to enter?` :
+        'This field is empty.\n\nWhat would you like to enter?';
       
       targetValue = prompt(promptMessage, '');
       if (targetValue === null || targetValue === '') return; // User cancelled or entered nothing

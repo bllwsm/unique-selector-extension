@@ -36,7 +36,7 @@ async function deleteSnippet(id) {
 async function copyAllSnippets() {
   try {
     const snippets = await getSnippets();
-    const text = snippets.map(s => s.code).join("\\n\\n");
+    const text = snippets.map(s => s.code).join("\n\n");
     
     await navigator.clipboard.writeText(text);
     alert('Copied all snippets to clipboard');
