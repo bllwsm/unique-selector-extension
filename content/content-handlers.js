@@ -18,10 +18,14 @@ function handleClick(ev) {
     
     const el = ev.target;
     
-    // Check if this is an input field click (only handle when recording)
-    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || 
-        el.contentEditable === 'true' || el.hasAttribute('contenteditable')) {
-      
+    // Check if this is an editable input field click (only handle when recording)
+    // Note: Don't treat buttons as editable fields
+    const isEditableInput = (el instanceof HTMLInputElement && 
+                           ['text', 'email', 'password', 'search', 'tel', 'url', 'number', 'date', 'datetime-local', 'month', 'week', 'time'].includes(el.type)) ||
+                          el instanceof HTMLTextAreaElement || 
+                          el.contentEditable === 'true' || el.hasAttribute('contenteditable');
+    
+    if (isEditableInput) {
       if (!window.isRecording) {
         console.log("[SnippetGenerator] Not recording, ignoring input field click");
         return;
@@ -48,12 +52,24 @@ function handleClick(ev) {
     
     console.log("[SnippetGenerator] Generated selector:", selector);
     
-    const code = `document.querySelector("${selector}").click();`;
+    // Handle different selector types
+    let selectorCode, selectorDescription;
+    
+    if (selector && typeof selector === 'object' && selector.type === 'text-based') {
+      // For text-based selectors, use the generated code directly (already includes .click())
+      selectorCode = selector.code;
+      selectorDescription = selector.description || `Text-based: "${selector.searchText}"`;
+    } else {
+      // For normal string selectors
+      selectorCode = `document.querySelector("${selector}").click();`;
+      selectorDescription = `${el.tagName}${el.id ? '#' + el.id : ''}${el.className ? '.' + el.className.split(' ')[0] : ''}`;
+    }
+    
     const snippet = {
       type: 'click',
       selector,
-      desc: `${el.tagName}${el.id ? '#' + el.id : ''}${el.className ? '.' + el.className.split(' ')[0] : ''}`,
-      code
+      desc: selectorDescription,
+      code: selectorCode
     };
     
     console.log("[SnippetGenerator] Click recorded:", snippet);
@@ -89,6 +105,16 @@ function handleInputFieldClick(el, ev) {
       console.warn("[SnippetGenerator] Could not generate unique selector for input:", el);
       showTemporaryMessage("Could not generate selector for this input", "warning");
       return;
+    }
+    
+    // Determine the selector expression to use in code
+    let selectorExpression;
+    if (selector && typeof selector === 'object' && selector.type === 'text-based') {
+      // For text-based selectors, use the findCode (without .click())
+      selectorExpression = selector.findCode;
+    } else {
+      // For normal selectors
+      selectorExpression = `document.querySelector("${selector}")`;
     }
     
     // Handle different types of editable elements
@@ -137,7 +163,7 @@ function handleInputFieldClick(el, ev) {
       if (replacePattern) {
         // Pattern replacement for contenteditable fields
         code = `// Replace pattern in contenteditable field
-const element = document.querySelector("${selector}");
+const element = ${selectorExpression};
 if (element) {
   element.focus();
   const currentText = element.textContent || element.innerText || '';
@@ -153,7 +179,7 @@ if (element) {
       } else {
         // Full replacement for contenteditable fields (empty field case)
         code = `// Simulate user typing in contenteditable field
-const element = document.querySelector("${selector}");
+const element = ${selectorExpression};
 if (element) {
   element.focus();
   element.textContent = '';
@@ -170,7 +196,7 @@ if (element) {
       if (replacePattern) {
         // Pattern replacement for form fields
         code = `// Replace pattern in form field
-const element = document.querySelector("${selector}");
+const element = ${selectorExpression};
 if (element) {
   element.focus();
   const currentValue = element.value || '';
@@ -185,7 +211,7 @@ if (element) {
       } else {
         // Full replacement for form fields (empty field case)
         code = `// Simulate user typing in form field
-const element = document.querySelector("${selector}");
+const element = ${selectorExpression};
 if (element) {
   element.focus();
   element.value = '';
