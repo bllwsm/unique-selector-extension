@@ -207,6 +207,10 @@ function tryBestAttributes(el) {
   const candidates = [];
   
   for (const attr of el.attributes) {
+    // Ignore ephemeral/dynamic IDs when considering attributes
+    if (attr.name === 'id' && isLikelyDynamicId(attr.value)) {
+      continue;
+    }
     if (attr.value && attr.value.trim()) {
       const score = scoreAttribute(attr.name, attr.value);
       candidates.push({ name: attr.name, value: attr.value.trim(), score });
@@ -323,17 +327,11 @@ function showTextSelectorDialog(element) {
 }
 
 function generateNormalSelector(targetElement) {
-    // Strategy 1: Try ID selector
-    if (targetElement.id) {
-      const idSel = '#' + CSS.escape(targetElement.id);
-      if (validateSelector(idSel, targetElement)) return idSel;
-    }
-    
-    // Strategy 2: Try data attributes and high-priority attributes
+    // Strategy 1: Try data attributes and high-priority attributes FIRST (more stable across renders)
     const highPriorityAttrs = tryBestAttributes(targetElement);
     if (highPriorityAttrs) return highPriorityAttrs;
     
-    // Strategy 2.5: Try ARIA attributes for better semantic targeting
+    // Strategy 2: Try ARIA attributes for better semantic targeting
     const ariaAttributes = ['aria-label', 'aria-labelledby', 'role', 'aria-describedby', 'title', 'alt', 'placeholder'];
     for (const attr of ariaAttributes) {
       if (targetElement.hasAttribute(attr)) {
@@ -351,18 +349,28 @@ function generateNormalSelector(targetElement) {
       if (validateSelector(sel, targetElement)) return sel;
     }
     
-    // Strategy 4: Try text content for interactive elements (buttons, links)
+    // Strategy 4: As a last resort before structural paths, try ID selector — but avoid ephemeral/dynamic IDs
+    if (targetElement.id) {
+      const idVal = String(targetElement.id);
+      const isLikelyDynamic = isLikelyDynamicId(idVal);
+      if (!isLikelyDynamic) {
+        const idSel = '#' + CSS.escape(idVal);
+        if (validateSelector(idSel, targetElement)) return idSel;
+      }
+    }
+    
+    // Strategy 5: Try text content for interactive elements (buttons, links)
     const textSelector = tryTextContent(targetElement);
     if (textSelector) return textSelector;
     
-    // Strategy 5: Skip class-based selectors (unreliable in modern web apps)
+    // Strategy 6: Skip class-based selectors (unreliable in modern web apps)
     // Classes often change or are auto-generated in frameworks
     
-    // Strategy 6: Build path with improved logic (no classes)
+    // Strategy 7: Build path with improved logic (no classes)
     const path = buildElementPath(targetElement);
     if (path && validateSelector(path, targetElement)) return path;
     
-    // Strategy 6: Fallback to nth-child
+    // Strategy 8: Fallback to nth-child
     const parent = targetElement.parentElement;
     if (parent) {
       const siblings = Array.from(parent.children);
@@ -375,6 +383,22 @@ function generateNormalSelector(targetElement) {
     }
     
     return null;
+}
+
+// Heuristic to detect ephemeral/dynamic IDs (e.g., React/ADG generated like "name-:rj8:")
+function isLikelyDynamicId(idVal) {
+  try {
+    // Common patterns:
+    // - Contains colon-wrapped token like ":rj8:" or ":rig:"
+    if (/:[a-z0-9_-]{2,6}:/i.test(idVal)) return true;
+    // - Long hex-ish or base36-ish tails (e.g., random hashes)
+    if (/[a-f0-9]{6,}$/i.test(idVal) && idVal.length > 12) return true;
+    // - React-select live regions / dynamic counters
+    if (/react-select-\d+/.test(idVal)) return true;
+  } catch (_e) {
+    // If any error, play safe: don't treat as dynamic
+  }
+  return false;
 }
 
 function generateTextSuggestions(element) {
