@@ -3,6 +3,11 @@
 function isEditableOrInteractiveField(el) {
   const tagName = el.tagName.toLowerCase();
   
+  // Exclude header elements even if they're contenteditable (they should be clickable, not editable)
+  if (/^h[1-6]$/.test(tagName)) {
+    return false;
+  }
+  
   // Only truly editable fields should trigger text prompts
   // Input fields (but only text-type inputs), textareas, and contenteditable elements
   if (tagName === 'textarea') {
@@ -19,18 +24,29 @@ function isEditableOrInteractiveField(el) {
     return true;
   }
   
-  // Contenteditable elements
+  // For contenteditable elements, be more restrictive
+  // Only consider them editable if they're specifically content editing areas (divs, spans, etc.)
+  // but not structural elements like headers, nav, etc.
+  const structuralElements = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'nav', 'header', 'footer', 'aside', 'section', 'article'];
+  if (structuralElements.includes(tagName)) {
+    return false;
+  }
+  
+  // Contenteditable elements (but not structural ones)
   if (el.hasAttribute('contenteditable') && el.getAttribute('contenteditable') !== 'false') {
     return true;
   }
   
   // Check if element is inside a contenteditable container (like ProseMirror editors)
-  let parent = el.parentElement;
-  while (parent) {
-    if (parent.hasAttribute('contenteditable') && parent.getAttribute('contenteditable') !== 'false') {
-      return true;
+  // But only for content-focused elements, not structural ones
+  if (!structuralElements.includes(tagName)) {
+    let parent = el.parentElement;
+    while (parent) {
+      if (parent.hasAttribute('contenteditable') && parent.getAttribute('contenteditable') !== 'false') {
+        return true;
+      }
+      parent = parent.parentElement;
     }
-    parent = parent.parentElement;
   }
   
   // Don't treat buttons, links, and other clickable elements as editable fields
@@ -212,13 +228,20 @@ function generateUniqueSelector(el, options = {}) {
   try {
     if (!el || el.nodeType !== 1) return null;
     
+    console.log("[UniqueSelector] generateUniqueSelector called for:", el, "tagName:", el.tagName);
+    
     const { enableTextPrompt = true } = options; // Enable by default
     
     // First, check if we should target a clickable parent instead
     const targetElement = findClickableParent(el);
+    console.log("[UniqueSelector] Target element after findClickableParent:", targetElement);
     
     // Check if this is an editable/interactive field and text prompting is enabled
-    if (enableTextPrompt && isEditableOrInteractiveField(targetElement)) {
+    const isInteractive = isEditableOrInteractiveField(targetElement);
+  console.log("[UniqueSelector] Is interactive field:", isInteractive, "enableTextPrompt:", enableTextPrompt);
+    
+  if (enableTextPrompt && isInteractive) {
+      console.log("[UniqueSelector] Showing confirm dialog for text-based selector");
       const useTextSelector = confirm(
         '🎯 This is an interactive element!\n\n' +
         'Do you want to create a text-based selector instead?\n\n' +
@@ -226,12 +249,16 @@ function generateUniqueSelector(el, options = {}) {
         '❌ NO: Use normal attribute-based selector'
       );
       
+      console.log("[UniqueSelector] User chose text selector:", useTextSelector);
+      
       if (useTextSelector) {
+        console.log("[UniqueSelector] Calling showTextSelectorDialog");
         return showTextSelectorDialog(targetElement);
       }
     }
     
     // Otherwise, generate normal selector
+    console.log("[UniqueSelector] Generating normal selector");
     return generateNormalSelector(targetElement);
     
   } catch (e) {
@@ -241,6 +268,8 @@ function generateUniqueSelector(el, options = {}) {
 }
 
 function showTextSelectorDialog(element) {
+  console.log("[UniqueSelector] showTextSelectorDialog called for:", element);
+  
   const suggestions = generateTextSuggestions(element);
   const elementType = element.tagName.toLowerCase();
   
@@ -254,17 +283,22 @@ function showTextSelectorDialog(element) {
     suggestionsText += '\nYou can use any of these or enter custom text.';
   }
   
+  console.log("[UniqueSelector] Showing first prompt for search text");
   const searchText = prompt(
     `🔍 Enter text to search for in ${elementType} elements:${suggestionsText}\n\n` +
     '💡 This will find elements containing your text.',
     suggestions[0]?.value || ''
   );
   
+  console.log("[UniqueSelector] User entered search text:", searchText);
+  
   if (!searchText) {
     // User cancelled, return normal selector
+    console.log("[UniqueSelector] User cancelled, returning normal selector");
     return generateNormalSelector(element);
   }
   
+  console.log("[UniqueSelector] Showing second prompt for match type");
   // Ask for match type
   const matchType = prompt(
     '🎯 How should the text match?\n\n' +
@@ -276,11 +310,15 @@ function showTextSelectorDialog(element) {
     'contains'
   );
   
+  console.log("[UniqueSelector] User entered match type:", matchType);
+  
   if (!matchType || !['contains', 'exact', 'startsWith', 'endsWith'].includes(matchType)) {
     // Invalid input, use default
+    console.log("[UniqueSelector] Invalid match type, using default");
     return generateTextBasedSelector(searchText, elementType, 'contains');
   }
   
+  console.log("[UniqueSelector] Generating text-based selector");
   return generateTextBasedSelector(searchText, elementType, matchType);
 }
 

@@ -6,6 +6,11 @@ const processedElements = new WeakSet();
 const userInteractedElements = new WeakSet();
 // Track page load time to filter out auto-fill events
 const pageLoadTime = Date.now();
+// Track if we're currently processing a click to prevent rapid successive clicks
+let isProcessingClick = false;
+// Track recently clicked elements to prevent handling their dynamically created children
+const recentlyClickedElements = new WeakSet();
+let lastClickTime = 0;
 
 function handleClick(ev) {
   console.log("[SnippetGenerator] Click detected, recording state:", window.isRecording);
@@ -17,21 +22,61 @@ function handleClick(ev) {
     }
     
     const el = ev.target;
+    console.log("[SnippetGenerator] Click target:", el, "tagName:", el.tagName, "contentEditable:", el.contentEditable);
     
     // Check if this is an editable input field click (only handle when recording)
     // Note: Don't treat buttons as editable fields
-    const isEditableInput = (el instanceof HTMLInputElement && 
-                           ['text', 'email', 'password', 'search', 'tel', 'url', 'number', 'date', 'datetime-local', 'month', 'week', 'time'].includes(el.type)) ||
-                          el instanceof HTMLTextAreaElement || 
-                          el.contentEditable === 'true' || el.hasAttribute('contenteditable');
+    // Also exclude header elements (h1, h2, etc.) even if they're contenteditable
+    const isHeaderElement = /^h[1-6]$/i.test(el.tagName);
+    console.log("[SnippetGenerator] Is header element:", isHeaderElement);
+    
+    const isEditableInput = !isHeaderElement && (
+      (el instanceof HTMLInputElement && 
+       ['text', 'email', 'password', 'search', 'tel', 'url', 'number', 'date', 'datetime-local', 'month', 'week', 'time'].includes(el.type)) ||
+      el instanceof HTMLTextAreaElement || 
+      (el.contentEditable === 'true' || el.hasAttribute('contenteditable'))
+    );
+    
+    console.log("[SnippetGenerator] Is editable input:", isEditableInput);
     
     if (isEditableInput) {
       if (!window.isRecording) {
         console.log("[SnippetGenerator] Not recording, ignoring input field click");
         return;
       }
-      
-      handleInputFieldClick(el, ev);
+
+      // For editable inputs, first offer text-based vs attribute-based selector,
+      // then always record a CLICK snippet. Do NOT open fill/replace prompts here.
+      console.log("[SnippetGenerator] Input element clicked - generating selector for click snippet");
+      const selector = generateUniqueSelector(el, { enableTextPrompt: true });
+      if (!selector) {
+        console.warn("[SnippetGenerator] Could not generate unique selector for input click:", el);
+        showTemporaryMessage("Could not generate selector for this element", "warning");
+        return;
+      }
+
+      let selectorCode, selectorDescription;
+      if (selector && typeof selector === 'object' && selector.type === 'text-based') {
+        selectorCode = selector.code; // already includes .click()
+        selectorDescription = selector.description || `Text-based: "${selector.searchText}"`;
+      } else {
+        selectorCode = `document.querySelector("${selector}").click();`;
+        selectorDescription = `${el.tagName}${el.id ? '#' + el.id : ''}${el.className ? '.' + el.className.split(' ')[0] : ''}`;
+      }
+
+      const snippet = {
+        type: 'click',
+        selector,
+        desc: selectorDescription,
+        code: selectorCode
+      };
+
+      console.log("[SnippetGenerator] Input click recorded as CLICK snippet:", snippet);
+      showClickFeedback(el);
+      saveSnippet(snippet).catch(error => {
+        console.error("[SnippetGenerator] Error saving click snippet:", error);
+        showTemporaryMessage("Error saving snippet", "error");
+      });
       return;
     }
     
@@ -42,7 +87,8 @@ function handleClick(ev) {
     
     console.log("[SnippetGenerator] Processing click on:", ev.target);
     
-    const selector = generateUniqueSelector(el);
+  // For input handling, skip the interactive/text-based confirm to avoid double prompts
+  const selector = generateUniqueSelector(el, { enableTextPrompt: false });
     
     if (!selector) {
       console.warn("[SnippetGenerator] Could not generate unique selector for element:", el);
@@ -106,7 +152,7 @@ function handleInputFieldClick(el, ev) {
       showTemporaryMessage("Could not generate selector for this input", "warning");
       return;
     }
-    
+
     // Determine the selector expression to use in code
     let selectorExpression;
     if (selector && typeof selector === 'object' && selector.type === 'text-based') {
@@ -255,9 +301,7 @@ if (element) {
     console.error("[SnippetGenerator] Error in handleInputFieldClick:", e);
     showTemporaryMessage("Error processing input field", "error");
   }
-}
-
-// Track when user actually types in input fields
+}// Track when user actually types in input fields
 function handleInput(ev) {
   // Only track trusted events that happen after page has had time to load
   if (!ev.isTrusted || (Date.now() - pageLoadTime) < 2000) {

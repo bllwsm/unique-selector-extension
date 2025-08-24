@@ -65,7 +65,10 @@ function renderList(snippets) {
     copy.className = 'copyBtn';
     copy.textContent = 'Copy';
     copy.addEventListener('click', () => {
-      navigator.clipboard.writeText(s.code).then(() => {
+      const format = document.getElementById('copyFormat')?.value || 'js';
+      const textToCopy = format === 'steps' ? convertToStepFormat(s) : s.code;
+      
+      navigator.clipboard.writeText(textToCopy).then(() => {
         copy.textContent = 'Copied!';
         setTimeout(() => {
           copy.textContent = 'Copy';
